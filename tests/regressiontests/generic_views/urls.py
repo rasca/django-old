@@ -211,7 +211,7 @@ urlpatterns = patterns('',
     (r'^dates/books/(?P<year>\d{4})/(?P<month>[a-z]{3})/(?P<day>\d{1,2})/byslug/(?P<slug>[\w-]+)/$',
         views.BookDetail.as_view()),
 
-    # FormSets
+    # FormSet
     (r'^edit/formsets/$',
         views.AuthorsArticlesView.as_view()),
     (r'^edit/modelformsets/$',

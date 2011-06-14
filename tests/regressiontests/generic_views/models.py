@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class Artist(models.Model):
     name = models.CharField(max_length=100)
 
@@ -15,6 +16,7 @@ class Artist(models.Model):
     def get_absolute_url(self):
         return ('artist_detail', (), {'pk': self.id})
 
+
 class Author(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField()
@@ -24,6 +26,7 @@ class Author(models.Model):
 
     def __unicode__(self):
         return self.name
+
 
 class Book(models.Model):
     name = models.CharField(max_length=300)
@@ -37,6 +40,7 @@ class Book(models.Model):
 
     def __unicode__(self):
         return self.name
+
 
 class Page(models.Model):
     content = models.TextField()

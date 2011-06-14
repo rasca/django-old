@@ -1,11 +1,11 @@
 from django.test import TestCase
 from django.core.exceptions import ImproperlyConfigured
-from django.views.generic.formsets import (FormSetsMixin, ModelFormSetsMixin,
+from django.views.generic.formsets import (FormSetMixin, ModelFormSetMixin,
         EnhancedModelFormSet, )
 from regressiontests.generic_views.models import Author, Article
 
 
-class FormSetsViewTests(TestCase):
+class FormSetViewTests(TestCase):
     urls = 'regressiontests.generic_views.urls'
 
     def setUp(self):
@@ -61,13 +61,13 @@ class FormSetsViewTests(TestCase):
         self.assertContains(response, 'ERROR')
 
 
-class ModelFormSetsTests(TestCase):
+class ModelFormSetTests(TestCase):
     def test_no_model_no_form_class(self):
         formset = EnhancedModelFormSet()
         self.assertRaises(ImproperlyConfigured, formset.get_model)
 
 
-class ModelFormSetsViewTests(TestCase):
+class ModelFormSetViewTests(TestCase):
     urls = 'regressiontests.generic_views.urls'
 
     def setUp(self):
@@ -124,7 +124,7 @@ class ModelFormSetsViewTests(TestCase):
         self.assertContains(response, 'ERROR')
 
 
-class InlineFormSetsViewTests(TestCase):
+class InlineFormSetViewTests(TestCase):
     urls = 'regressiontests.generic_views.urls'
 
     def setUp(self):

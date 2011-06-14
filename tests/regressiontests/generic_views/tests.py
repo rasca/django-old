@@ -3,4 +3,4 @@ from regressiontests.generic_views.dates import ArchiveIndexViewTests, YearArchi
 from regressiontests.generic_views.detail import DetailViewTest
 from regressiontests.generic_views.edit import ModelFormMixinTests, CreateViewTests, UpdateViewTests, DeleteViewTests
 from regressiontests.generic_views.list import ListViewTests
-from regressiontests.generic_views.formsets import FormSetsViewTests, ModelFormSetsTests, ModelFormSetsViewTests, InlineFormSetsViewTests
+from regressiontests.generic_views.formsets import FormSetViewTests, ModelFormSetTests, ModelFormSetViewTests, InlineFormSetViewTests

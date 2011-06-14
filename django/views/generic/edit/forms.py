@@ -1,9 +1,8 @@
 from django.forms import models as model_forms
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponseRedirect
-from django.views.generic.base import TemplateResponseMixin, View
-from django.views.generic.detail import (SingleObjectMixin,
-                        SingleObjectTemplateResponseMixin, BaseDetailView)
+from django.views.generic.base import View
+from django.views.generic.detail import SingleObjectMixin
 
 
 class FormMixin(object):
@@ -145,64 +144,6 @@ class ProcessFormView(View):
         return self.post(*args, **kwargs)
 
 
-class BaseFormView(FormMixin, ProcessFormView):
-    """
-    A base view for displaying a form
-    """
-
-
-class FormView(TemplateResponseMixin, BaseFormView):
-    """
-    A view for displaying a form, and rendering a template response.
-    """
-
-
-class BaseCreateView(ModelFormMixin, ProcessFormView):
-    """
-    Base view for creating an new object instance.
-
-    Using this base class requires subclassing to provide a response mixin.
-    """
-    def get(self, request, *args, **kwargs):
-        self.object = None
-        return super(BaseCreateView, self).get(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        self.object = None
-        return super(BaseCreateView, self).post(request, *args, **kwargs)
-
-
-class CreateView(SingleObjectTemplateResponseMixin, BaseCreateView):
-    """
-    View for creating an new object instance,
-    with a response rendered by template.
-    """
-    template_name_suffix = '_form'
-
-
-class BaseUpdateView(ModelFormMixin, ProcessFormView):
-    """
-    Base view for updating an existing object.
-
-    Using this base class requires subclassing to provide a response mixin.
-    """
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        return super(BaseUpdateView, self).get(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        return super(BaseUpdateView, self).post(request, *args, **kwargs)
-
-
-class UpdateView(SingleObjectTemplateResponseMixin, BaseUpdateView):
-    """
-    View for updating an object,
-    with a response rendered by template..
-    """
-    template_name_suffix = '_form'
-
-
 class DeletionMixin(object):
     """
     A mixin providing the ability to delete objects
@@ -224,19 +165,3 @@ class DeletionMixin(object):
         else:
             raise ImproperlyConfigured(
                 "No URL to redirect to. Provide a success_url.")
-
-
-class BaseDeleteView(DeletionMixin, BaseDetailView):
-    """
-    Base view for deleting an object.
-
-    Using this base class requires subclassing to provide a response mixin.
-    """
-
-
-class DeleteView(SingleObjectTemplateResponseMixin, BaseDeleteView):
-    """
-    View for deleting an object retrieved with `self.get_object()`,
-    with a response rendered by template.
-    """
-    template_name_suffix = '_confirm_delete'

@@ -181,19 +181,19 @@ class AuthorGetQuerySetFormView(generic.edit.ModelFormMixin):
         return Author.objects.all()
 
 
-class AuthorsArticlesView(generic.FormSetsView):
+class AuthorsArticlesView(generic.FormSetView):
     formsets = [ArticleEnhancedFormSet, AuthorEnhancedFormSet, ]
     template_name = 'authors_articles.html'
     success_url = '/list/authors/'
     
 
-class AuthorsArticlesModelsView(generic.ModelFormSetsView):
+class AuthorsArticlesModelsView(generic.ModelFormSetView):
     formsets = [ArticleEnhancedModelFormSet, AuthorEnhancedModelFormSet, ]
     template_name = 'authors_articles.html'
     success_url = '/list/authors/'
 
 
-class AuthorsInlinesView(generic.InlineFormSetsView):
+class AuthorsInlinesView(generic.InlineFormSetView):
     formsets = [ArticleEnhancedInlineFormSet, ]
     template_name = 'authors_articles.html'
     success_url = '/list/authors/'
