@@ -25,6 +25,7 @@ from django.utils.text import capfirst, get_text_list
 from django.utils.translation import ugettext as _
 from django.utils.translation import ungettext
 from django.utils.encoding import force_unicode
+from django.views.generic import EnhancedInlineFormSet
 
 HORIZONTAL, VERTICAL = 1, 2
 # returns the <ul> class for a given radio_admin field
@@ -1293,7 +1294,7 @@ class ModelAdmin(BaseModelAdmin):
             "admin/object_history.html"
         ], context, current_app=self.admin_site.name)
 
-class InlineModelAdmin(BaseModelAdmin):
+class InlineModelAdmin(BaseModelAdmin, EnhancedInlineFormSet):
     """
     Options for inline editing of ``model`` instances.
 
@@ -1301,15 +1302,11 @@ class InlineModelAdmin(BaseModelAdmin):
     ``model`` to its parent. This is required if ``model`` has more than one
     ``ForeignKey`` to its parent.
     """
-    model = None
-    fk_name = None
     formset = BaseInlineFormSet
-    extra = 3
-    max_num = None
     template = None
     verbose_name = None
     verbose_name_plural = None
-    can_delete = True
+    can_delete = True # True in EnhancedInlineFormSet
 
     def __init__(self, parent_model, admin_site):
         self.admin_site = admin_site
@@ -1334,32 +1331,19 @@ class InlineModelAdmin(BaseModelAdmin):
 
     def get_formset(self, request, obj=None, **kwargs):
         """Returns a BaseInlineFormSet class for use in admin add/change views."""
-        if self.declared_fieldsets:
-            fields = flatten_fieldsets(self.declared_fieldsets)
-        else:
-            fields = None
-        if self.exclude is None:
-            exclude = []
-        else:
-            exclude = list(self.exclude)
-        exclude.extend(kwargs.get("exclude", []))
+
+        exclude = self.get_exclude() or []
         exclude.extend(self.get_readonly_fields(request, obj))
-        # if exclude is an empty list we use None, since that's the actual
-        # default
         exclude = exclude or None
-        defaults = {
-            "form": self.form,
-            "formset": self.formset,
-            "fk_name": self.fk_name,
-            "fields": fields,
+
+        new_kwargs = {
             "exclude": exclude,
             "formfield_callback": partial(self.formfield_for_dbfield, request=request),
-            "extra": self.extra,
-            "max_num": self.max_num,
-            "can_delete": self.can_delete,
+            "parent_model": self.parent_model,
         }
-        defaults.update(kwargs)
-        return inlineformset_factory(self.parent_model, self.model, **defaults)
+        new_kwargs.update(kwargs)
+        
+        return self.get_base_formset(**new_kwargs)
 
     def get_fieldsets(self, request, obj=None):
         if self.declared_fieldsets:
@@ -1367,6 +1351,19 @@ class InlineModelAdmin(BaseModelAdmin):
         form = self.get_formset(request).form
         fields = form.base_fields.keys() + list(self.get_readonly_fields(request, obj))
         return [(None, {'fields': fields})]
+
+    def get_fields(self):
+        if self.declared_fieldsets:
+            return flatten_fieldsets(self.declared_fieldsets)
+        else:
+            return self.fields
+
+    # Stuff due to different naming
+    def get_formset_class(self):
+        return self.formset
+
+    def get_form_class(self):
+        return self.form
 
 class StackedInline(InlineModelAdmin):
     template = 'admin/edit_inline/stacked.html'
