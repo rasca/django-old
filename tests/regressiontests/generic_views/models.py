@@ -41,3 +41,9 @@ class Book(models.Model):
 class Page(models.Model):
     content = models.TextField()
     template = models.CharField(max_length=300)
+
+
+class Article(models.Model):
+    title = models.CharField(max_length=100)
+    pubdate = models.DateField()
+    author = models.ForeignKey(Author, blank=True, null=True)

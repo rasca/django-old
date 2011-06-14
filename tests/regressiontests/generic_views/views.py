@@ -5,8 +5,10 @@ from django.utils.decorators import method_decorator
 from django.views import generic
 
 from regressiontests.generic_views.models import Artist, Author, Book, Page
-from regressiontests.generic_views.forms import AuthorForm
-
+from regressiontests.generic_views.forms import (AuthorForm,
+        ArticleEnhancedFormSet, AuthorEnhancedFormSet,
+        ArticleEnhancedModelFormSet, AuthorEnhancedModelFormSet,
+        ArticleEnhancedInlineFormSet, )
 
 class CustomTemplateView(generic.TemplateView):
     template_name = 'generic_views/about.html'
@@ -177,3 +179,22 @@ class BookDetail(BookConfig, generic.DateDetailView):
 class AuthorGetQuerySetFormView(generic.edit.ModelFormMixin):
     def get_queryset(self):
         return Author.objects.all()
+
+
+class AuthorsArticlesView(generic.FormSetsView):
+    formsets = [ArticleEnhancedFormSet, AuthorEnhancedFormSet, ]
+    template_name = 'authors_articles.html'
+    success_url = '/list/authors/'
+    
+
+class AuthorsArticlesModelsView(generic.ModelFormSetsView):
+    formsets = [ArticleEnhancedModelFormSet, AuthorEnhancedModelFormSet, ]
+    template_name = 'authors_articles.html'
+    success_url = '/list/authors/'
+
+
+class AuthorsInlinesView(generic.InlineFormSetsView):
+    formsets = [ArticleEnhancedInlineFormSet, ]
+    template_name = 'authors_articles.html'
+    success_url = '/list/authors/'
+    model = Author
