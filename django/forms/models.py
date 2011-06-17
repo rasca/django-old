@@ -9,7 +9,7 @@ from django.utils.text import get_text_list, capfirst
 from django.utils.translation import ugettext_lazy as _, ugettext
 
 from django.core.exceptions import ValidationError, NON_FIELD_ERRORS, \
-                                   FieldError
+                                   FieldError, ImproperlyConfigured
 from django.core.validators import EMPTY_VALUES
 from util import ErrorList
 from forms import BaseForm, get_declared_fields
@@ -411,10 +411,26 @@ class BaseModelFormSet(BaseFormSet):
     A ``FormSet`` for editing a queryset and/or adding new objects to it.
     """
     model = None
+    queryset = None
+    formfield_callback = None
+    form = ModelForm
+    fields = None
+    exclude = None
+    formfield_callback = None
 
     def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
                  queryset=None, **kwargs):
-        self.queryset = queryset
+
+        if not self.model:
+            raise ImproperlyConfigured(
+                "No model defined. Please define a model attribute in the class.")
+
+        self.form = modelform_factory(self.model, form=self.form,
+                          fields=self.fields, exclude=self.exclude,
+                          formfield_callback=self.formfield_callback)
+        if queryset is not None:
+            self.queryset = queryset
+
         defaults = {'data': data, 'files': files, 'auto_id': auto_id, 'prefix': prefix}
         defaults.update(kwargs)
         super(BaseModelFormSet, self).__init__(**defaults)
@@ -670,8 +686,23 @@ def modelformset_factory(model, form=ModelForm, formfield_callback=None,
 
 class BaseInlineFormSet(BaseModelFormSet):
     """A formset for child objects related to a parent."""
+
+    parent_model = None
+    fk_name = None
+
     def __init__(self, data=None, files=None, instance=None,
-                 save_as_new=False, prefix=None, queryset=None):
+                 save_as_new=False, prefix=None, queryset=None,
+                 parent_model=None, fk_name=None):
+
+        if not getattr(self, 'fk', False):
+            if fk_name:
+                self.fk_name = fk_name
+            if parent_model:
+                self.parent_model = parent_model
+            self.fk = _get_foreign_key(self.parent_model, self.model, fk_name=self.fk_name)
+            if self.fk.unique:
+                max_num = 1
+
         from django.db.models.fields.related import RelatedObject
         if instance is None:
             self.instance = self.fk.rel.to()

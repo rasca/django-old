@@ -171,135 +171,13 @@ class DeletionMixin(object):
                 "No URL to redirect to. Provide a success_url.")
 
 
-class EnhancedFormSet(object):
-    """
-    A base class for generic formsets
-    """
-
-    form_class = None
-    formset_class = BaseFormSet
-
-    # formset_factory kwargs
-    extra = 3
-    can_order = False
-    can_delete = False
-    max_num = None
-
-    def get_base_formset(self, **kwargs):
-        """
-        Returns the base formset
-        """
-        new_kwargs = self.get_kwargs()
-        new_kwargs.update(**kwargs)
-        return self.get_factory()(**new_kwargs)
-
-    def get_factory(self):
-        """
-        Returns the factory used to construct the formsets
-        """
-        return formset_factory
-
-    def get_form_class(self):
-        return self.form_class
-
-    def get_formset_class(self):
-        return self.formset_class
-
-    def get_kwargs(self):
-        return {'form': self.get_form_class(),
-                'formset': self.get_formset_class(),
-                'extra': self.extra,
-                'can_order': self.can_order,
-                'can_delete': self.can_delete,
-                'max_num': self.max_num, }
-
-
-class EnhancedModelFormSet(EnhancedFormSet):
-    """
-    A base class for generic model formsets
-    """
-    # TODO: provide a hook for formfield_callback
-
-    form_class = ModelForm
-    formset_class = BaseModelFormSet
-    model = None
-    queryset = None
-    fields = None
-    exclude = None
-
-    def get_factory(self):
-        return modelformset_factory
-
-    def get_model(self):
-        if self.model:
-            return self.model
-        else:
-            try:
-                return self.get_form_class().Meta.model
-            except AttributeError:
-                raise ImproperlyConfigured(
-                "No model to create the modelformset. Provide one.")
-
-    def get_queryset(self):
-        return self.queryset
-
-    def get_fields(self):
-        return self.fields
-
-    def get_exclude(self):
-        return self.exclude
-
-    def get_kwargs(self):
-        kwargs = super(EnhancedModelFormSet, self).get_kwargs()
-        kwargs.update({
-            'model': self.get_model(),
-            'fields': self.get_fields(),
-            'exclude': self.get_exclude(),
-        })
-        return kwargs
-
-
-class EnhancedInlineFormSet(EnhancedModelFormSet):
-    """
-    A base class for generic inline formsets
-    """
-
-    fk_name = None
-    formset_class = BaseInlineFormSet
-
-    def get_factory(self):
-        return inlineformset_factory
-
-    def get_fk_name(self):
-        return self.fk_name
-
-    def get_kwargs(self):
-        kwargs = super(EnhancedInlineFormSet, self).get_kwargs()
-        kwargs.update({
-            'fk_name': self.get_fk_name(),
-        })
-        return kwargs
-
-
 class FormSetMixin(object):
     """
     A mixin that provides a way to show and handle formsets
     """
 
-    formsets = []  # must be a list of BaseGenericFormSet
+    formsets = []  # must be a list of BaseFormSet subclasses
     success_url = None
-
-    def __init__(self, *args, **kwargs):
-        self.instantiate_enhanced_formsets()
-
-    def instantiate_enhanced_formsets(self):
-        """
-        Instantiates the enhanced formsets
-        """
-        self.enhanced_formsets_instances = []
-        for formset in self.formsets:
-            enhanced_formset_instance = formset()
-            self.enhanced_formsets_instances.append(enhanced_formset_instance)
 
     def construct_formsets(self):
         """
@@ -308,28 +186,18 @@ class FormSetMixin(object):
         self.formsets_instances = []
 
         prefixes = {}
-        for enhanced_formset in self.enhanced_formsets_instances:
-            base_formset = enhanced_formset.get_base_formset(
-                **self.get_factory_kwargs())
-
+        for formset in self.formsets:
             # calculate prefix
-            prefix = base_formset.get_default_prefix()
+            prefix = formset.get_default_prefix()
             prefixes[prefix] = prefixes.get(prefix, 0) + 1
             if prefixes[prefix] != 1:
                 prefix = "%s-%s" % (prefix, prefixes[prefix])
 
             self.formsets_instances.append(
-                base_formset(prefix=prefix, **self.get_formsets_kwargs(
-                    enhanced_formset))
+                formset(prefix=prefix, **self.get_formsets_kwargs(formset))
             )
 
-    def get_factory_kwargs(self):
-        """
-        Returns the keyword arguments for the formsets factory
-        """
-        return {}
-
-    def get_formsets_kwargs(self, enhanced_formset):
+    def get_formsets_kwargs(self, formset):
         """"
         Returns the keyword arguments for instanciating the formsets
         """
@@ -372,19 +240,7 @@ class ModelFormSetMixin(FormSetMixin):
     A mixin that provides a way to show and handle model formsets
     """
 
-    def get_formsets_kwargs(self, enhanced_formset):
-        """"
-        Returns the keyword arguments for instanciating the model formsets
-        """
-        kwargs = super(ModelFormSetMixin, self).get_formsets_kwargs(
-                                                    enhanced_formset)
-        kwargs.update({
-            'queryset': enhanced_formset.get_queryset()
-        })
-        return kwargs
-
     def formsets_valid(self):
-        # FIXME: beware of m2m
         for formset in self.formsets_instances:
             formset.save()
         return super(ModelFormSetMixin, self).formsets_valid()
@@ -395,14 +251,14 @@ class InlineFormSetMixin(ModelFormSetMixin, ModelFormMixin):
     A mixin that provides a way to show and handle a model with it's inline
     formsets
     """
-    def get_formsets_kwargs(self, enhanced_formset):
+    def get_formsets_kwargs(self, formset):
         """"
         Returns the keyword arguments for instanciating the inline formsets
         """
-        kwargs = super(InlineFormSetMixin, self).get_formsets_kwargs(
-                                                    enhanced_formset)
+        kwargs = super(InlineFormSetMixin, self).get_formsets_kwargs(formset)
         kwargs.update({
-            'instance': self.object
+            'instance': self.object,
+            'parent_model': self.object.__class__,
         })
         return kwargs
 
@@ -414,14 +270,6 @@ class InlineFormSetMixin(ModelFormSetMixin, ModelFormMixin):
         context_data.update(ModelFormMixin.get_context_data(self, **kwargs))
         return context_data
 
-    def get_factory_kwargs(self):
-        """
-        Returns the keyword arguments for the formsets factory
-        """
-        return {
-            'parent_model': self.object.__class__,
-        }
-
     def form_valid(self, form):
         self.object.save()
         form.save_m2m()
@@ -432,6 +280,35 @@ class InlineFormSetMixin(ModelFormSetMixin, ModelFormMixin):
 
     def form_invalid(self, form):
         return self.render_to_response(self.get_context_data(form=form))
+
+    # UGLY UGLY hack follows: we can't call the get_default_prefix of the
+    # formset cause it's a @classmethod and now we are generating the fk in the
+    # __init__ instead than in the factory
+    def get_default_prefix(self, formset):
+        from django.forms.models import _get_foreign_key
+        fk = _get_foreign_key(self.object.__class__, formset.model,
+                                   fk_name=formset.fk_name)
+        from django.db.models.fields.related import RelatedObject
+        return RelatedObject(fk.rel.to, formset.model, fk).get_accessor_name().replace('+','')
+
+    # UGLY UGLY hack continues: we use the above get_default_prefix
+    def construct_formsets(self):
+        """
+        Constructs the formsets
+        """
+        self.formsets_instances = []
+
+        prefixes = {}
+        for formset in self.formsets:
+            # calculate prefix
+            prefix = self.get_default_prefix(formset)
+            prefixes[prefix] = prefixes.get(prefix, 0) + 1
+            if prefixes[prefix] != 1:
+                prefix = "%s-%s" % (prefix, prefixes[prefix])
+
+            self.formsets_instances.append(
+                formset(prefix=prefix, **self.get_formsets_kwargs(formset))
+            )
 
 
 class ProcessFormSetView(View):

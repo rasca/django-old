@@ -6,9 +6,9 @@ from django.views import generic
 
 from regressiontests.generic_views.models import Artist, Author, Book, Page
 from regressiontests.generic_views.forms import (AuthorForm,
-        ArticleEnhancedFormSet, AuthorEnhancedFormSet,
-        ArticleEnhancedModelFormSet, AuthorEnhancedModelFormSet,
-        ArticleEnhancedInlineFormSet, )
+        ArticleFormSet, AuthorFormSet,
+        ArticleModelFormSet, AuthorModelFormSet,
+        ArticleInlineFormSet, )
 
 class CustomTemplateView(generic.TemplateView):
     template_name = 'generic_views/about.html'
@@ -182,19 +182,19 @@ class AuthorGetQuerySetFormView(generic.edit.ModelFormMixin):
 
 
 class AuthorsArticlesView(generic.FormSetView):
-    formsets = [ArticleEnhancedFormSet, AuthorEnhancedFormSet, ]
+    formsets = [ArticleFormSet, AuthorFormSet, ]
     template_name = 'authors_articles.html'
     success_url = '/list/authors/'
     
 
 class AuthorsArticlesModelsView(generic.ModelFormSetView):
-    formsets = [ArticleEnhancedModelFormSet, AuthorEnhancedModelFormSet, ]
+    formsets = [ArticleModelFormSet, AuthorModelFormSet, ]
     template_name = 'authors_articles.html'
     success_url = '/list/authors/'
 
 
 class AuthorsInlinesView(generic.InlineFormSetView):
-    formsets = [ArticleEnhancedInlineFormSet, ]
+    formsets = [ArticleInlineFormSet, ]
     template_name = 'authors_articles.html'
     success_url = '/list/authors/'
     model = Author

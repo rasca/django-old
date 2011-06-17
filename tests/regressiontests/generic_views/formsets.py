@@ -1,7 +1,6 @@
 from django.test import TestCase
 from django.core.exceptions import ImproperlyConfigured
-from django.views.generic.formsets import (FormSetMixin, ModelFormSetMixin,
-        EnhancedModelFormSet, )
+from django.views.generic.edit import FormSetMixin, ModelFormSetMixin
 from regressiontests.generic_views.models import Author, Article
 
 
@@ -59,12 +58,6 @@ class FormSetViewTests(TestCase):
         response = self.client.post('/edit/formsets/', self.data)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'ERROR')
-
-
-class ModelFormSetTests(TestCase):
-    def test_no_model_no_form_class(self):
-        formset = EnhancedModelFormSet()
-        self.assertRaises(ImproperlyConfigured, formset.get_model)
 
 
 class ModelFormSetViewTests(TestCase):

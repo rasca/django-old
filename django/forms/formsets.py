@@ -1,5 +1,5 @@
 from forms import Form
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ImproperlyConfigured
 from django.utils.encoding import StrAndUnicode
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
@@ -32,10 +32,25 @@ class BaseFormSet(StrAndUnicode):
     """
     A collection of instances of the same Form class.
     """
+    form = None
+    extra = 1
+    can_order = False
+    can_delete = False
+    max_num = None
+
     def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
                  initial=None, error_class=ErrorList):
+
+        if not self.form:
+            raise ImproperlyConfigured(
+                "No form defined. Please define a form attribute in the class.")
+        # Maybe a get_form() would be useful?
+
         self.is_bound = data is not None or files is not None
-        self.prefix = prefix or self.get_default_prefix()
+        if prefix:
+            self.prefix = prefix
+        else:
+            self.prefix = self.get_default_prefix()
         self.auto_id = auto_id
         self.data = data or {}
         self.files = files or {}

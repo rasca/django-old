@@ -3,12 +3,11 @@ from django.views.generic.dates import (ArchiveIndexView, YearArchiveView, Month
                                      WeekArchiveView, DayArchiveView, TodayArchiveView,
                                      DateDetailView)
 from django.views.generic.detail import DetailView
-from django.views.generic.edit import FormView, CreateView, UpdateView, DeleteView
-from django.views.generic.list import ListView
+from django.views.generic.edit import (FormView, CreateView, UpdateView,
+                               DeleteView, FormSetView, ModelFormSetView,
+                               InlineFormSetView, )
 
-from django.views.generic.formsets import (FormSetView, ModelFormSetView,
-                               InlineFormSetView, EnhancedFormSet,
-                               EnhancedModelFormSet, EnhancedInlineFormSet, )
+from django.views.generic.list import ListView
 
 
 class GenericViewError(Exception):

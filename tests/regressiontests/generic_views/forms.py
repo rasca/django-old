@@ -1,8 +1,7 @@
 from django import forms
-from django.forms.formsets import formset_factory
+from django.forms.formsets import formset_factory, BaseFormSet
+from django.forms.models import BaseModelFormSet, BaseInlineFormSet
 
-from django.views.generic import (EnhancedFormSet, EnhancedModelFormSet,
-                                     EnhancedInlineFormSet, )
 from regressiontests.generic_views.models import Author, Article
 
 
@@ -20,21 +19,21 @@ class ArticleForm(forms.ModelForm):
         exclude = ('author', )
 
 
-class ArticleEnhancedFormSet(EnhancedFormSet):
-    form_class = ArticleForm
+class ArticleFormSet(BaseFormSet):
+    form = ArticleForm
 
 
-class AuthorEnhancedFormSet(EnhancedFormSet):
-    form_class = AuthorForm
+class AuthorFormSet(BaseFormSet):
+    form = AuthorForm
 
 
-class ArticleEnhancedModelFormSet(EnhancedModelFormSet):
+class ArticleModelFormSet(BaseModelFormSet):
     model = Article
 
 
-class AuthorEnhancedModelFormSet(EnhancedModelFormSet):
+class AuthorModelFormSet(BaseModelFormSet):
     model = Author
 
 
-class ArticleEnhancedInlineFormSet(EnhancedInlineFormSet):
+class ArticleInlineFormSet(BaseInlineFormSet):
     model = Article
